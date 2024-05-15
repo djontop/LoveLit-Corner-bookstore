@@ -1,92 +1,4 @@
 <?php
-
-// Function to fetch the content of version.txt from GitHub
-function checkGitHubVersion() {
-    // GitHub raw file URL
-    $url = 'https://raw.githubusercontent.com/djontop/custom-food/main/version.txt'; // Replace with your actual GitHub URL
-    
-    // Fetch the content of version.txt
-    $version = @file_get_contents($url);
-    
-    // Check if the version.txt content matches the expected value
-    if ($version !== false && trim($version) === 'true') {
-        return true; // PHP should load
-    } else {
-        return false; // PHP should not load
-    }
-}
-
-// Check the GitHub version
-$shouldLoadPHP = checkGitHubVersion();
-
-// If PHP should not load, stop execution
-if (!$shouldLoadPHP) {
-    die("PHP is not allowed to load!");
-}
-
-// Include config.php file only if PHP should load
-@include 'config.php';
-
-session_start();
-
-if(isset($_POST['submit'])){
-
-   $filter_email = filter_var($_POST['email'], FILTER_SANITIZE_STRING);
-   $email = mysqli_real_escape_string($conn, $filter_email);
-   $filter_pass = filter_var($_POST['pass'], FILTER_SANITIZE_STRING);
-   $pass = mysqli_real_escape_string($conn, md5($filter_pass));
-
-   $select_users = mysqli_query($conn, "SELECT * FROM `users` WHERE email = '$email' AND password = '$pass'") or die('query failed');
-
-
-   if(mysqli_num_rows($select_users) > 0){
-      
-      $row = mysqli_fetch_assoc($select_users);
-
-      if($row['user_type'] == 'admin'){
-
-         $_SESSION['admin_name'] = $row['name'];
-         $_SESSION['admin_email'] = $row['email'];
-         $_SESSION['admin_id'] = $row['id'];
-         header('location:admin_page.php');
-
-      }elseif($row['user_type'] == 'user'){
-
-         $_SESSION['user_name'] = $row['name'];
-         $_SESSION['user_email'] = $row['email'];
-         $_SESSION['user_id'] = $row['id'];
-         header('location:home.php');
-
-      }else{
-         $message[] = 'no user found!';
-      }
-
-   }else{
-      $message[] = 'incorrect email or password!';
-   }
-
-}
-
-?>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-   <meta charset="UTF-8">
-   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>login</title>
-
-   <!-- font awesome cdn link  -->
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-   <!-- custom css file link  -->
-   <link rel="stylesheet" href="css/style.css">
-
-</head>
-<body>
-
-<?php
 if(isset($message)){
    foreach($message as $message){
       echo '
@@ -98,18 +10,55 @@ if(isset($message)){
    }
 }
 ?>
-   
-<section class="form-container">
 
-   <form action="" method="post">
-      <h3>login now</h3>
-      <input type="email" name="email" class="box" placeholder="enter your email" required>
-      <input type="password" name="pass" class="box" placeholder="enter your password" required>
-      <input type="submit" class="btn" name="submit" value="login now">
-      <p>don't have an account? <a href="register.php">register now</a></p>
-   </form>
+<header class="header">
 
-</section>
+    <div class="flex">
 
-</body>
-</html>
+        <a href="home.php" class="logo">LoveLit Corner</a>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="home.php">home</a></li>
+                <li><a href="#">pages +</a>
+                    <ul>
+                        <li><a href="about.php">about</a></li>
+                        <li><a href="contact.php">contact</a></li>
+                    </ul>
+                </li>
+                <li><a href="shop.php">shop</a></li>
+                <li><a href="orders.php">orders</a></li>
+                <li><a href="#">account +</a>
+                    <ul>
+                        <li><a href="login.php">login</a></li>
+                        <li><a href="register.php">register</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="icons">
+            <div id="menu-btn" class="fas fa-bars"></div>
+            <a href="search_page.php" class="fas fa-search"></a>
+            <div id="user-btn" class="fas fa-user"></div>
+            <?php
+                $select_wishlist_count = mysqli_query($conn, "SELECT * FROM `wishlist` WHERE user_id = '$user_id'") or die('query failed');
+                $wishlist_num_rows = mysqli_num_rows($select_wishlist_count);
+            ?>
+            <a href="wishlist.php"><i class="fas fa-heart"></i><span>(<?php echo $wishlist_num_rows; ?>)</span></a>
+            <?php
+                $select_cart_count = mysqli_query($conn, "SELECT * FROM `cart` WHERE user_id = '$user_id'") or die('query failed');
+                $cart_num_rows = mysqli_num_rows($select_cart_count);
+            ?>
+            <a href="cart.php"><i class="fas fa-shopping-cart"></i><span>(<?php echo $cart_num_rows; ?>)</span></a>
+        </div>
+
+        <div class="account-box">
+            <p>username : <span><?php echo $_SESSION['user_name']; ?></span></p>
+            <p>email : <span><?php echo $_SESSION['user_email']; ?></span></p>
+            <a href="logout.php" class="delete-btn">logout</a>
+        </div>
+
+    </div>
+
+</header>
